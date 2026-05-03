@@ -1,4 +1,4 @@
-# Phoenix Basic Easy Version (Tkinter + MySQL)
+# Phoenix Livestock Investment Management System (Tkinter + MySQL)
 
 A small, beginner-friendly version of your project idea:
 - Login with role-based panel (admin / manager / investor)
