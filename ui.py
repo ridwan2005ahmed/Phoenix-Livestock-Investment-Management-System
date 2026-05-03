@@ -76,11 +76,40 @@ class App(tk.Tk):
             bal = self.db.investor_balance(self.current_user["user_id"])
             tk.Label(self, text=f"Your Balance: BDT {bal:,.2f}", font=("Segoe UI", 11)).pack()
         else:
-            tk.Label(self, text=f"Wallet Balance: BDT {self.db.wallet_balance():,.2f}", font=("Segoe UI", 11)).pack()
-            # show total profit if project was closed (or zero)
-            profit = self.db.total_profit()
-            tk.Label(self, text=f"Total Profit: BDT {profit:,.2f}", font=("Segoe UI", 11)).pack()
-        tk.Button(self, text="Logout", command=self.login_ui).pack(pady=6)
+            summary = self.db.project_summary()
+            if summary:
+                tk.Label(
+                    self,
+                    text=f"Company Amount: BDT {summary['total_invested']:,.2f}",
+                    font=("Segoe UI", 11),
+                ).pack()
+                tk.Label(
+                    self,
+                    text=f"Profit: BDT {summary['total_profit']:,.2f}",
+                    font=("Segoe UI", 11),
+                ).pack()
+                tk.Label(self, text="Wallet Balance: BDT 0.00", font=("Segoe UI", 11)).pack()
+            else:
+                tk.Label(self, text=f"Wallet Balance: BDT {self.db.wallet_balance():,.2f}", font=("Segoe UI", 11)).pack()
+                tk.Label(self, text=f"Total Profit: BDT {self.db.total_profit():,.2f}", font=("Segoe UI", 11)).pack()
+        # Buttons (Logout + admin-only Close Project)
+        btn_frame = tk.Frame(self)
+        btn_frame.pack(pady=6)
+        tk.Button(btn_frame, text="Logout", command=self.login_ui).pack(side="left", padx=6)
+        if self.current_user and self.current_user.get("role") == "admin" and not self.db.project_summary():
+            tk.Button(btn_frame, text="Close Project and Calculate", command=self.admin_close_project).pack(side="left", padx=6)
+
+    def admin_close_project(self):
+        if not self.current_user or self.current_user.get("role") != "admin":
+            messagebox.showerror("Permission", "Only admin can close project")
+            return
+        ok = self.db.close_project()
+        if ok:
+            messagebox.showinfo("Project Closed", "Project closed and investor profits calculated")
+        else:
+            messagebox.showerror("Failed", "Could not close project")
+        # Refresh admin panel view
+        self.show_role_panel("admin")
 
     def signup_ui(self):
         self.clear()

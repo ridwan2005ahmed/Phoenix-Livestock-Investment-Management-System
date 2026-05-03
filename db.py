@@ -245,7 +245,6 @@ class DB:
 
     def close_project(self):
         c = self.cur()
-        # create investor_accounts table if not exists
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS investor_accounts (
@@ -257,20 +256,42 @@ class DB:
             );
             """
         )
-        # rebuild investor_accounts from approved deposits
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS project_summary (
+                summary_id TINYINT PRIMARY KEY,
+                total_invested DECIMAL(12,2) NOT NULL,
+                total_profit DECIMAL(12,2) NOT NULL,
+                closed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """
+        )
         c.execute("DELETE FROM investor_accounts")
         c.execute(
             "INSERT INTO investor_accounts (investor_id, invested, profit, balance, withdrawn) "
             "SELECT investor_id, SUM(amount) AS invested, SUM(amount)*0.4 AS profit, SUM(amount)*1.4 AS balance, 0 "
             "FROM deposits WHERE status='approved' GROUP BY investor_id"
         )
+        c.execute("SELECT COALESCE(SUM(amount), 0), COALESCE(SUM(amount), 0) * 0.4 FROM deposits WHERE status='approved'")
+        row = c.fetchone()
+        invested = 0.0
+        profit = 0.0
+        if row:
+            row_any = cast(Any, row)
+            invested = float(row_any[0])
+            profit = float(row_any[1])
+        c.execute("DELETE FROM project_summary")
+        c.execute(
+            "INSERT INTO project_summary (summary_id, total_invested, total_profit) VALUES (1, %s, %s)",
+            (invested, profit),
+        )
+        c.execute("UPDATE manager_wallet SET balance = 0 WHERE wallet_id=1")
         self.con.commit()
         c.close()
         return True
 
     def investor_withdraw(self, investor_id):
         c = self.cur()
-        # get investor balance
         c.execute("SELECT balance, withdrawn FROM investor_accounts WHERE investor_id=%s FOR UPDATE", (investor_id,))
         row = c.fetchone()
         if not row:
@@ -285,31 +306,19 @@ class DB:
             c.close()
             return False
 
-        # check manager wallet has enough funds to pay out
-        c.execute("SELECT balance FROM manager_wallet WHERE wallet_id=1 FOR UPDATE")
-        mrow = c.fetchone()
-        if not mrow:
-            self.con.rollback()
-            c.close()
-            return False
-        mrow_any = cast(Any, mrow)
-        manager_bal = float(mrow_any[0])
-        if manager_bal < bal:
-            self.con.rollback()
-            c.close()
-            return False
-
-        # deduct from manager wallet and zero investor account
-        c.execute("UPDATE manager_wallet SET balance = balance - %s WHERE wallet_id=1", (bal,))
         c.execute("UPDATE investor_accounts SET balance=0, withdrawn=1 WHERE investor_id=%s", (investor_id,))
         self.con.commit()
         c.close()
         return True
 
     def total_profit(self):
+        summary = self.project_summary()
+        if summary:
+            return float(summary["total_profit"])
+
         c = self.cur()
         try:
-            c.execute("SELECT COALESCE(SUM(profit), 0) FROM investor_accounts")
+            c.execute("SELECT COALESCE(SUM(amount), 0) * 0.4 FROM deposits WHERE status='approved'")
             row = c.fetchone()
             c.close()
             if not row:
@@ -320,16 +329,26 @@ class DB:
             c.close()
             return 0.0
 
-    def project_closed(self):
+    def project_summary(self):
         c = self.cur()
         try:
-            c.execute("SELECT 1 FROM investor_accounts LIMIT 1")
-            c.fetchone()
+            c.execute("SELECT total_invested, total_profit, closed_at FROM project_summary WHERE summary_id=1")
+            row = c.fetchone()
             c.close()
-            return True
+            if not row:
+                return None
+            row_any = cast(Any, row)
+            return {
+                "total_invested": float(row_any[0]),
+                "total_profit": float(row_any[1]),
+                "closed_at": str(row_any[2]),
+            }
         except Exception:
             c.close()
-            return False
+            return None
+
+    def project_closed(self):
+        return self.project_summary() is not None
 
     def manager_daily_costs(self):
         c = self.cur()

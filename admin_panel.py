@@ -27,7 +27,6 @@ class AdminPanel:
         self.refresh()
         tk.Button(self.app, text="Approve Selected Deposit", command=self.approve_selected).pack(pady=8)
         tk.Button(self.app, text="Refresh All Accounts", command=self.refresh).pack(pady=4)
-        tk.Button(self.app, text="Close Project and Calculate", command=self.close_project).pack(pady=8)
 
     def refresh(self):
         if self.dep_list is None or self.cost_list is None or self.summary_label is None:
