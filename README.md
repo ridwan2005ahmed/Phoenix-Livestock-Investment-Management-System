@@ -7,12 +7,30 @@ A small, beginner-friendly version of your project idea:
 - Admin can approve deposits
 - Admin can also view manager daily cost history and summary
 
-## 1) Install
+## 1) Windows setup
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
+### Install Python
+
+Install Python 3.10+ from the official website and make sure `python` or `py` works in Command Prompt / PowerShell.
+
+### Install MySQL
+
+Install MySQL Server and start the service. Create a database for this project in the next step.
+
+### Create virtual environment
+
+Open PowerShell or Command Prompt in this folder and run:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
+```
+
+If PowerShell blocks activation, run this once and try again:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
 ## 2) Create MySQL DB
@@ -34,6 +52,18 @@ Open `config.py` and change:
 ```bash
 python app.py
 ```
+
+## GitHub update
+
+After making changes locally, update GitHub with:
+
+```bash
+git add README.md
+git commit -m "Update README with Windows setup"
+git push origin main
+```
+
+If your default branch is not `main`, replace it with your branch name.
 
 ## Demo users
 
