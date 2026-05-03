@@ -25,9 +25,9 @@ class AdminPanel:
         self.cost_list.pack(pady=6)
 
         self.refresh()
-
         tk.Button(self.app, text="Approve Selected Deposit", command=self.approve_selected).pack(pady=8)
         tk.Button(self.app, text="Refresh All Accounts", command=self.refresh).pack(pady=4)
+        tk.Button(self.app, text="Close Project and Calculate", command=self.close_project).pack(pady=8)
 
     def refresh(self):
         if self.dep_list is None or self.cost_list is None or self.summary_label is None:
@@ -91,3 +91,11 @@ class AdminPanel:
             self.render()
         else:
             messagebox.showerror("Failed", "Could not approve this deposit")
+
+    def close_project(self):
+        ok = self.app.db.close_project()
+        if ok:
+            messagebox.showinfo("Project Closed", "Project closed and investor profits calculated")
+        else:
+            messagebox.showerror("Failed", "Could not close project")
+        self.render()

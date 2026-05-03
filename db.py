@@ -146,6 +146,18 @@ class DB:
 
     def investor_balance(self, investor_id):
         c = self.cur()
+        # If project was closed, investor_accounts will exist and hold final balances
+        try:
+            c.execute("SELECT balance FROM investor_accounts WHERE investor_id=%s", (investor_id,))
+            row = c.fetchone()
+            if row:
+                row_any = cast(Any, row)
+                c.close()
+                return float(row_any[0])
+        except Exception:
+            # table may not exist yet; fall back to summing approved deposits
+            pass
+
         c.execute(
             "SELECT COALESCE(SUM(amount), 0) FROM deposits WHERE investor_id=%s AND status='approved'",
             (investor_id,),
@@ -230,6 +242,83 @@ class DB:
         self.con.commit()
         c.close()
         return True
+
+    def close_project(self):
+        c = self.cur()
+        # create investor_accounts table if not exists
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS investor_accounts (
+                investor_id VARCHAR(60) PRIMARY KEY,
+                invested DECIMAL(12,2) NOT NULL,
+                profit DECIMAL(12,2) NOT NULL,
+                balance DECIMAL(12,2) NOT NULL,
+                withdrawn TINYINT(1) NOT NULL DEFAULT 0
+            );
+            """
+        )
+        # rebuild investor_accounts from approved deposits
+        c.execute("DELETE FROM investor_accounts")
+        c.execute(
+            "INSERT INTO investor_accounts (investor_id, invested, profit, balance, withdrawn) "
+            "SELECT investor_id, SUM(amount) AS invested, SUM(amount)*0.4 AS profit, SUM(amount)*1.4 AS balance, 0 "
+            "FROM deposits WHERE status='approved' GROUP BY investor_id"
+        )
+        self.con.commit()
+        c.close()
+        return True
+
+    def investor_withdraw(self, investor_id):
+        c = self.cur()
+        # get investor balance
+        c.execute("SELECT balance, withdrawn FROM investor_accounts WHERE investor_id=%s FOR UPDATE", (investor_id,))
+        row = c.fetchone()
+        if not row:
+            self.con.rollback()
+            c.close()
+            return False
+        row_any = cast(Any, row)
+        bal = float(row_any[0])
+        withdrawn = bool(row_any[1])
+        if withdrawn or bal <= 0:
+            self.con.rollback()
+            c.close()
+            return False
+
+        # check manager wallet has enough funds to pay out
+        c.execute("SELECT balance FROM manager_wallet WHERE wallet_id=1 FOR UPDATE")
+        mrow = c.fetchone()
+        if not mrow:
+            self.con.rollback()
+            c.close()
+            return False
+        mrow_any = cast(Any, mrow)
+        manager_bal = float(mrow_any[0])
+        if manager_bal < bal:
+            self.con.rollback()
+            c.close()
+            return False
+
+        # deduct from manager wallet and zero investor account
+        c.execute("UPDATE manager_wallet SET balance = balance - %s WHERE wallet_id=1", (bal,))
+        c.execute("UPDATE investor_accounts SET balance=0, withdrawn=1 WHERE investor_id=%s", (investor_id,))
+        self.con.commit()
+        c.close()
+        return True
+
+    def total_profit(self):
+        c = self.cur()
+        try:
+            c.execute("SELECT COALESCE(SUM(profit), 0) FROM investor_accounts")
+            row = c.fetchone()
+            c.close()
+            if not row:
+                return 0.0
+            row_any = cast(Any, row)
+            return float(row_any[0])
+        except Exception:
+            c.close()
+            return 0.0
 
     def manager_daily_costs(self):
         c = self.cur()
