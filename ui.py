@@ -71,12 +71,7 @@ class App(tk.Tk):
 
     def topbar(self, title):
         tk.Label(self, text=title, font=("Segoe UI", 14, "bold")).pack(pady=10)
-        # Show manager wallet balance for admin/manager, but show investor's own balance to investors
-        if self.current_user and self.current_user.get("role") == "investor":
-            bal = self.db.investor_balance(self.current_user["user_id"])
-            tk.Label(self, text=f"Your Balance: BDT {bal:,.2f}", font=("Segoe UI", 11)).pack()
-        else:
-            tk.Label(self, text=f"Wallet Balance: BDT {self.db.wallet_balance():,.2f}", font=("Segoe UI", 11)).pack()
+        tk.Label(self, text=f"Wallet Balance: BDT {self.db.wallet_balance():,.2f}", font=("Segoe UI", 11)).pack()
         tk.Button(self, text="Logout", command=self.login_ui).pack(pady=6)
 
     def signup_ui(self):

@@ -144,19 +144,6 @@ class DB:
         row_any = cast(Any, row)
         return float(row_any[0])
 
-    def investor_balance(self, investor_id):
-        c = self.cur()
-        c.execute(
-            "SELECT COALESCE(SUM(amount), 0) FROM deposits WHERE investor_id=%s AND status='approved'",
-            (investor_id,),
-        )
-        row = c.fetchone()
-        c.close()
-        if not row:
-            return 0.0
-        row_any = cast(Any, row)
-        return float(row_any[0])
-
     def add_deposit_request(self, investor_id, amount):
         c = self.cur()
         c.execute("INSERT INTO deposits (investor_id, amount) VALUES (%s, %s)", (investor_id, amount))
