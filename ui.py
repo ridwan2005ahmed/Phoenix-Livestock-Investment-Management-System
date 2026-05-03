@@ -11,7 +11,7 @@ class App(tk.Tk):
         super().__init__()
         self.db = db
 
-        self.title("Phoenix Basic")
+        self.title("Phoenix")
         self.geometry("780x560")
         self.resizable(False, False)
 
@@ -33,7 +33,7 @@ class App(tk.Tk):
 
     def login_ui(self):
         self.clear()
-        tk.Label(self, text="Phoenix Basic Login", font=("Segoe UI", 16, "bold")).pack(pady=18)
+        tk.Label(self, text="Phoenix Login", font=("Segoe UI", 16, "bold")).pack(pady=18)
 
         box = tk.Frame(self)
         box.pack(pady=10)
