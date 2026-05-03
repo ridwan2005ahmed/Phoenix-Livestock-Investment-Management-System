@@ -33,6 +33,26 @@ If PowerShell blocks activation, run this once and try again:
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
+## 1b) Linux setup
+
+### Install Python
+
+Install Python 3.10+ from your package manager and make sure `python3` works in Terminal.
+
+### Install MySQL
+
+Install MySQL Server and start the service. Create a database for this project in the next step.
+
+### Create virtual environment
+
+Open Terminal in this folder and run:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## 2) Create MySQL DB
 
 ```sql
@@ -51,6 +71,12 @@ Open `config.py` and change:
 
 ```bash
 python app.py
+```
+
+On Linux, you can also run:
+
+```bash
+python3 app.py
 ```
 
 ## GitHub update
