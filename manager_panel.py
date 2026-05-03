@@ -7,6 +7,7 @@ class ManagerPanel:
         self.app = app
         self.purpose_e = None
         self.cost_e = None
+        self.profit_e = None
 
     def render(self):
         self.app.clear()
@@ -25,11 +26,34 @@ class ManagerPanel:
 
         tk.Button(self.app, text="Save Daily Cost", command=self.save_daily_cost).pack(pady=8)
 
+        # Manager profit section
+        sep = tk.Frame(self.app, height=2, bd=1, relief="sunken")
+        sep.pack(fill="x", padx=8, pady=12)
+
+        prof_box = tk.Frame(self.app)
+        prof_box.pack(pady=6)
+
+        tk.Label(prof_box, text="Add Profit Amount").grid(row=0, column=0, sticky="w", padx=8, pady=8)
+        self.profit_e = tk.Entry(prof_box, width=20)
+        self.profit_e.grid(row=0, column=1, padx=8, pady=8)
+        tk.Button(self.app, text="Add Profit", command=self.add_profit).pack(pady=6)
+
     def _parse_amount(self):
         if self.cost_e is None:
             return None
         try:
             amount = float(self.cost_e.get().strip())
+            if amount <= 0:
+                return None
+            return amount
+        except ValueError:
+            return None
+
+    def _parse_profit_amount(self):
+        if self.profit_e is None:
+            return None
+        try:
+            amount = float(self.profit_e.get().strip())
             if amount <= 0:
                 return None
             return amount
@@ -56,4 +80,21 @@ class ManagerPanel:
             return
 
         messagebox.showinfo("Saved", "Daily cost added")
+        self.render()
+
+    def add_profit(self):
+        if self.profit_e is None:
+            return
+
+        amount = self._parse_profit_amount()
+        if amount is None:
+            messagebox.showerror("Invalid", "Enter a valid positive amount")
+            return
+
+        ok = self.app.db.add_manager_profit(amount)
+        if not ok:
+            messagebox.showerror("Failed", "Could not add profit")
+            return
+
+        messagebox.showinfo("Done", "Profit added to wallet")
         self.render()
