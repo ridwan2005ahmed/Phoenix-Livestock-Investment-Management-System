@@ -218,19 +218,6 @@ class DB:
         c.close()
         return True
 
-    def add_manager_profit(self, amount):
-        try:
-            amt = float(amount)
-        except (TypeError, ValueError):
-            return False
-        if amt <= 0:
-            return False
-        c = self.cur()
-        c.execute("UPDATE manager_wallet SET balance = balance + %s WHERE wallet_id=1", (amt,))
-        self.con.commit()
-        c.close()
-        return True
-
     def manager_daily_costs(self):
         c = self.cur()
         c.execute(
