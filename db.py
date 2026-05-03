@@ -320,6 +320,17 @@ class DB:
             c.close()
             return 0.0
 
+    def project_closed(self):
+        c = self.cur()
+        try:
+            c.execute("SELECT 1 FROM investor_accounts LIMIT 1")
+            c.fetchone()
+            c.close()
+            return True
+        except Exception:
+            c.close()
+            return False
+
     def manager_daily_costs(self):
         c = self.cur()
         c.execute(
