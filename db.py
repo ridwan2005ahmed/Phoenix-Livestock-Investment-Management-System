@@ -30,8 +30,8 @@ class DB:
         self.init_schema()
         self.seed_data()
 
-    def cur(self, dictionary=False):
-        return self.con.cursor(dictionary=dictionary)
+    def cur(self, dictionary=False, buffered=False):
+        return self.con.cursor(dictionary=dictionary, buffered=buffered)
 
     def init_schema(self):
         c = self.cur()
@@ -65,7 +65,7 @@ class DB:
         c.close()
 
     def login(self, user_id, password):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT user_id, role FROM users WHERE user_id=%s AND password=%s", (user_id, password))
         row = c.fetchone()
         c.close()
@@ -83,7 +83,7 @@ class DB:
             return False, "User ID is too long"
         if user_id.startswith("admin") or user_id.startswith("manager"):
             return False, "Use an investor-style user id"
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT user_id FROM users WHERE user_id=%s", (user_id,))
         exists = c.fetchone()
         if exists:
@@ -95,7 +95,7 @@ class DB:
         return True, "Signup successful"
 
     def wallet_balance(self):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT balance FROM manager_wallet WHERE wallet_id=1")
         row = c.fetchone()
         c.close()
@@ -111,7 +111,7 @@ class DB:
         c.close()
 
     def pending_deposits(self):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT deposit_id, investor_id, amount FROM deposits WHERE status='pending' ORDER BY deposit_id ASC")
         rows = c.fetchall()
         c.close()
@@ -122,7 +122,7 @@ class DB:
         return result
 
     def approve_deposit(self, deposit_id):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT amount, status FROM deposits WHERE deposit_id=%s FOR UPDATE", (deposit_id,))
         row = c.fetchone()
         if not row:
@@ -150,7 +150,7 @@ class DB:
         return True
 
     def get_income_entries(self):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT entry_id, description, amount, entry_type, created_at FROM income_entries ORDER BY entry_id DESC")
         rows = c.fetchall()
         c.close()
@@ -161,7 +161,7 @@ class DB:
         return result
 
     def get_profit_summary(self):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT entry_type, COALESCE(SUM(amount), 0) FROM income_entries GROUP BY entry_type")
         rows = c.fetchall()
         c.close()
@@ -177,7 +177,7 @@ class DB:
         return {"income": income, "expense": expense, "net_profit": net_profit}
 
     def get_approved_deposits_for_project(self, project_id=1):
-        c = self.cur()
+        c = self.cur(buffered=True)
         try:
             c.execute("SELECT investor_id, SUM(amount) FROM deposits WHERE (project_id=%s OR project_id IS NULL) AND status='approved' GROUP BY investor_id", (project_id,))
         except:
@@ -191,7 +191,7 @@ class DB:
         return result
 
     def close_project_and_calculate(self, project_id=1):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT status FROM projects WHERE project_id=%s FOR UPDATE", (project_id,))
         project_row = c.fetchone()
         if not project_row:
@@ -234,7 +234,7 @@ class DB:
         return True, f"Project closed. Net Profit: ৳{net_profit:,.2f}. 40% (৳{profit_distribution:,.2f}) distributed to investors."
 
     def get_investor_profit_details(self, investor_id):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT investor_id, invested_amount, profit_share, final_balance, withdrawn, created_at FROM investor_profits WHERE investor_id=%s AND project_id=1", (investor_id,))
         row = c.fetchone()
         c.close()
@@ -244,7 +244,7 @@ class DB:
         return {"investor_id": str(row_any[0]), "invested_amount": float(row_any[1]), "profit_share": float(row_any[2]), "final_balance": float(row_any[3]), "withdrawn": bool(row_any[4]), "created_at": str(row_any[5])}
 
     def withdraw_investor_profit(self, investor_id):
-        c = self.cur()
+        c = self.cur(buffered=True)
         c.execute("SELECT final_balance, withdrawn FROM investor_profits WHERE investor_id=%s AND project_id=1 FOR UPDATE", (investor_id,))
         row = c.fetchone()
         if not row:
@@ -264,7 +264,7 @@ class DB:
         return True, f"Withdrawal successful. Amount: ৳{final_balance:,.2f}"
 
     def is_project_closed(self):
-        c = self.cur()
+        c = self.cur(buffered=True)
         try:
             c.execute("SELECT status FROM projects WHERE project_id=1")
             row = c.fetchone()
