@@ -9,6 +9,7 @@ class AdminPanel:
         self.entry_list = None
         self.summary_label = None
         self.profit_summary_label = None
+        self.wallet_label = None
 
     def render(self):
         self.app.clear()
@@ -30,6 +31,10 @@ class AdminPanel:
         self.profit_summary_label = tk.Label(self.app, text="", font=("Segoe UI", 10), fg="darkblue")
         self.profit_summary_label.pack()
 
+        # Manager wallet balance (admin-only)
+        self.wallet_label = tk.Label(self.app, text="", font=("Segoe UI", 10, "bold"), fg="darkgreen")
+        self.wallet_label.pack(pady=(4, 6))
+
         self.entry_list = tk.Listbox(self.app, width=90, height=3)
         self.entry_list.pack(pady=6)
 
@@ -48,6 +53,10 @@ class AdminPanel:
             return
         self._load_pending_deposits()
         self._load_income_entries()
+        # Update manager wallet balance
+        if self.wallet_label is not None:
+            bal = self.app.db.wallet_balance()
+            self.wallet_label.config(text=f"Manager Wallet Balance: ৳{bal:,.2f}")
 
     def _load_pending_deposits(self):
         if self.dep_list is None:
