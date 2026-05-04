@@ -144,8 +144,18 @@ class DB:
         if entry_type not in ("income", "expense"):
             return False
         c = self.cur()
-        c.execute("INSERT INTO income_entries (description, amount, entry_type) VALUES (%s, %s, %s)", (description, amount, entry_type))
-        self.con.commit()
+        try:
+            c.execute("INSERT INTO income_entries (description, amount, entry_type) VALUES (%s, %s, %s)", (description, amount, entry_type))
+            # Adjust manager wallet for every income/expense entry
+            if entry_type == "income":
+                c.execute("UPDATE manager_wallet SET balance = balance + %s WHERE wallet_id=1", (amount,))
+            else:
+                c.execute("UPDATE manager_wallet SET balance = balance - %s WHERE wallet_id=1", (amount,))
+            self.con.commit()
+        except Exception:
+            self.con.rollback()
+            c.close()
+            return False
         c.close()
         return True
 
@@ -191,7 +201,7 @@ class DB:
         return result
 
     def close_project_and_calculate(self, project_id=1):
-        c = self.cur(buffered=True)
+        c = self.cur()
         c.execute("SELECT status FROM projects WHERE project_id=%s FOR UPDATE", (project_id,))
         project_row = c.fetchone()
         if not project_row:
