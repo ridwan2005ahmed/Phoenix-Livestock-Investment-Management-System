@@ -44,7 +44,7 @@ class DB:
             col_exists = c.fetchone()
             if not col_exists:
                 c.execute("ALTER TABLE deposits ADD COLUMN project_id INT NOT NULL DEFAULT 1 AFTER deposit_id")
-        except:
+        except (mysql.connector.Error, Exception):
             c.execute("CREATE TABLE IF NOT EXISTS deposits (deposit_id INT PRIMARY KEY AUTO_INCREMENT, project_id INT NOT NULL DEFAULT 1, investor_id VARCHAR(60) NOT NULL, amount DECIMAL(12,2) NOT NULL, status ENUM('pending','approved','withdrawn') NOT NULL DEFAULT 'pending', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);")
         
         c.execute("CREATE TABLE IF NOT EXISTS daily_costs (cost_id INT PRIMARY KEY AUTO_INCREMENT, purpose VARCHAR(120) NOT NULL, amount DECIMAL(12,2) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);")
@@ -190,7 +190,7 @@ class DB:
         c = self.cur(buffered=True)
         try:
             c.execute("SELECT investor_id, SUM(amount) FROM deposits WHERE (project_id=%s OR project_id IS NULL) AND status='approved' GROUP BY investor_id", (project_id,))
-        except:
+        except (mysql.connector.Error, Exception):
             c.execute("SELECT investor_id, SUM(amount) FROM deposits WHERE status='approved' GROUP BY investor_id")
         rows = c.fetchall()
         c.close()
@@ -282,7 +282,7 @@ class DB:
             if not row:
                 return False
             return cast(Any, row)[0] == "closed"
-        except:
+        except (mysql.connector.Error, Exception):
             c.close()
             return False
 
@@ -294,9 +294,10 @@ class DB:
             c.execute("DELETE FROM income_entries")
             c.execute("DELETE FROM deposits")
             c.execute("DELETE FROM daily_costs")
+            c.execute("DELETE FROM investor_profits WHERE project_id=1")
             self.con.commit()
             c.close()
-            return True, "✓ New Project Started!\n\n✓ Wallet Reset: ৳0\n✓ All Old Entries Cleared\n✓ All Deposits Cleared\n✓ Ready for New Investments"
+            return True, "✓ New Project Started!\n\n✓ Wallet Reset: ৳0\n✓ All Old Entries Cleared\n✓ All Deposits Cleared\n✓ All Profit Records Cleared\n✓ Ready for New Investments"
         except Exception as e:
             self.con.rollback()
             c.close()
