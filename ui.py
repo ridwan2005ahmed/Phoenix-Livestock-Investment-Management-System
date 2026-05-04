@@ -11,8 +11,8 @@ class App(tk.Tk):
         super().__init__()
         self.db = db
 
-        self.title("Phoenix Basic")
-        self.geometry("780x560")
+        self.title("Phoenix Livestock Investment - Management System")
+        self.geometry("900x600")
         self.resizable(False, False)
 
         self.current_user = None
@@ -33,10 +33,11 @@ class App(tk.Tk):
 
     def login_ui(self):
         self.clear()
-        tk.Label(self, text="Phoenix Basic Login", font=("Segoe UI", 16, "bold")).pack(pady=18)
+        tk.Label(self, text="Phoenix Livestock Investment", font=("Segoe UI", 18, "bold")).pack(pady=8)
+        tk.Label(self, text="Management System", font=("Segoe UI", 14)).pack(pady=4)
 
         box = tk.Frame(self)
-        box.pack(pady=10)
+        box.pack(pady=20)
 
         tk.Label(box, text="User ID").grid(row=0, column=0, sticky="w", padx=8, pady=8)
         self.user_e = tk.Entry(box, width=30)
@@ -46,9 +47,9 @@ class App(tk.Tk):
         self.pass_e = tk.Entry(box, width=30, show="*")
         self.pass_e.grid(row=1, column=1, padx=8, pady=8)
 
-        tk.Button(self, text="Login", width=14, command=self.do_login).pack(pady=10)
-        tk.Button(self, text="Investor Signup", width=14, command=self.signup_ui).pack(pady=4)
-        tk.Label(self, text="Demo: admin/1234, manager/1234, investor/1234", fg="gray").pack(pady=6)
+        tk.Button(self, text="Login", width=14, command=self.do_login, bg="#4CAF50", fg="white").pack(pady=10)
+        tk.Button(self, text="Investor Signup", width=14, command=self.signup_ui, bg="#2196F3", fg="white").pack(pady=4)
+        tk.Label(self, text="Demo: admin/1234, manager/1234, investor/1234", fg="gray", font=("Segoe UI", 9)).pack(pady=10)
 
     def do_login(self):
         user_id = self._entry_text(self.user_e)
@@ -71,7 +72,7 @@ class App(tk.Tk):
 
     def topbar(self, title):
         tk.Label(self, text=title, font=("Segoe UI", 14, "bold")).pack(pady=10)
-        tk.Label(self, text=f"Wallet Balance: BDT {self.db.wallet_balance():,.2f}", font=("Segoe UI", 11)).pack()
+        tk.Label(self, text=f"Wallet Balance: ৳{self.db.wallet_balance():,.2f}", font=("Segoe UI", 11)).pack()
         tk.Button(self, text="Logout", command=self.login_ui).pack(pady=6)
 
     def signup_ui(self):
@@ -93,7 +94,7 @@ class App(tk.Tk):
         self.confirm_pass_e = tk.Entry(box, width=30, show="*")
         self.confirm_pass_e.grid(row=2, column=1, padx=8, pady=8)
 
-        tk.Button(self, text="Create Investor Account", command=self.do_signup).pack(pady=10)
+        tk.Button(self, text="Create Investor Account", command=self.do_signup, bg="#4CAF50", fg="white").pack(pady=10)
         tk.Button(self, text="Back to Login", command=self.login_ui).pack(pady=4)
 
     def do_signup(self):

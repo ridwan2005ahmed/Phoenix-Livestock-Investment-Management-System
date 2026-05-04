@@ -10,6 +10,7 @@ def _find_project_python(app_path: Path) -> Path | None:
     candidates = [
         project_root / ".venv" / "bin" / "python",
         project_root / "my_env" / "bin" / "python",
+        project_root / "venv" / "bin" / "python",
     ]
     for python_path in candidates:
         if python_path.exists():
@@ -41,7 +42,6 @@ if __name__ == "__main__":
         print(f"Missing dependency: {exc}. Run: {sys.executable} -m pip install mysql-connector-python")
         raise SystemExit(1)
     except Exception as exc:
-        # Display DB errors before UI boots.
         messagebox.showerror("DB Error", f"Cannot connect DB: {exc}")
         raise SystemExit(1)
 

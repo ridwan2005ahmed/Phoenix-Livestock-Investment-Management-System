@@ -1,108 +1,92 @@
-# Phoenix Livestock Investment Management System (Tkinter + MySQL)
+# Phoenix Livestock Investment Management System
 
-A small, beginner-friendly version of your project idea:
-- Login with role-based panel (admin / manager / investor)
-- Investor can request deposit
-- Manager can add daily cost (deducts from wallet)
-- Admin can approve deposits
-- Admin can also view manager daily cost history and summary
+**A complete investment management system with role-based access, income/expense tracking, and automated profit distribution.**
 
-## 1) Windows setup
+Built with: **Python 3.10+** | **Tkinter GUI** | **MySQL Database**
 
-### Install Python
+---
 
-Install Python 3.10+ from the official website and make sure `python` or `py` works in Command Prompt / PowerShell.
+## 🎯 Features
 
-### Install MySQL
+- **Manager Panel**: Track income (+) and expenses (−) with real-time profit calculation
+- **Admin Panel**: Approve deposits, monitor entries, close projects, and start new cycles
+- **Investor Panel**: Submit deposits, view profit calculations, and withdraw final balance
+- **Profit Calculation**: 40% of net profit distributed proportionally to investors
+- **Project Management**: Close completed projects and reset for new investment cycles
 
-Install MySQL Server and start the service. Create a database for this project in the next step.
+---
 
-### Create virtual environment
+## 🚀 Quick Start
 
-Open PowerShell or Command Prompt in this folder and run:
+### Windows
 
-```powershell
-py -m venv .venv
-.venv\Scripts\activate
+1. **Install Python 3.10+** and add to PATH
+2. **Install MySQL** and remember root password
+3. Clone repo and create venv:
+   ```powershell
+   git clone https://github.com/ridwan2005ahmed/Phoenix-Livestock-Investment-Management-System.git
+   cd Phoenix-Livestock-Investment-Management-System-main
+   python -m venv venv
+   venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+4. **Edit `config.py`** with your MySQL credentials
+5. **Run**: `python app.py`
+
+### Linux/macOS
+
+```bash
+git clone https://github.com/ridwan2005ahmed/Phoenix-Livestock-Investment-Management-System.git
+cd Phoenix-Livestock-Investment-Management-System-main
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-```
-
-If PowerShell blocks activation, run this once and try again:
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-## 1b) Linux setup
-
-### Install Python
-
-Install Python 3.10+ from your package manager and make sure `python3` works in Terminal.
-
-### Install MySQL
-
-Install MySQL Server and start the service. Create a database for this project in the next step.
-
-### Create virtual environment
-
-Open Terminal in this folder and run:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## 2) Create MySQL DB
-
-```sql
-CREATE DATABASE IF NOT EXISTS phoenix_basic;
-```
-
-## 3) Update DB credentials
-
-Open `config.py` and change:
-- `DB_HOST`
-- `DB_USER`
-- `DB_PASSWORD`
-- `DB_NAME`
-
-## 4) Run
-
-```bash
-python app.py
-```
-
-On Linux, you can also run:
-
-```bash
+# Edit config.py with credentials
 python3 app.py
 ```
 
-## GitHub update
+---
 
-After making changes locally, update GitHub with:
+## 👤 Demo Users
 
-```bash
-git add README.md
-git commit -m "Update README with Windows setup"
-git push origin main
+| Role | ID | Password |
+|------|----|----|
+| Admin | admin | 1234 |
+| Manager | manager | 1234 |
+| Investor | investor | 1234 |
+
+---
+
+## 📊 Profit Formula
+
+```
+Net Profit = Total Income − Total Expense
+Profit Share = Net Profit × 40% × (Investor's Deposit / Total Deposits)
+Final Balance = Invested Amount + Profit Share
 ```
 
-If your default branch is not `main`, replace it with your branch name.
+---
 
-## Demo users
+## 📋 File Structure
 
-- admin / 1234
-- manager / 1234
-- investor / 1234
+- `app.py` - Main entry point
+- `config.py` - Database config (edit with your credentials)
+- `db.py` - Database & profit calculations
+- `ui.py` - Login/signup interface
+- `admin_panel.py` - Admin features
+- `manager_panel.py` - Manager features
+- `investor_panel.py` - Investor features
+- `requirements.txt` - Dependencies
+- `venv/` - Virtual environment
 
-## File Structure
+---
 
-- `app.py` -> entry point
-- `config.py` -> DB settings
-- `db.py` -> all MySQL queries and methods
-- `ui.py` -> login/signup and role routing
-- `admin_panel.py` -> admin part
-- `manager_panel.py` -> manager part
-- `investor_panel.py` -> investor part
+## 🔧 Troubleshooting
+
+**MySQL connection failed**: Check `config.py` credentials and MySQL is running
+**Module not found**: Ensure venv is activated and `pip install -r requirements.txt` ran
+**Port in use**: Close previous app instances
+
+---
+
+**See README.md for detailed setup instructions and USAGE_GUIDE.md for complete feature documentation.**
